@@ -2,6 +2,8 @@ package org.example.pingpong;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.redis.core.ReactiveRedisTemplate;
+import org.springframework.data.redis.core.script.RedisScript;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
@@ -28,10 +30,17 @@ public class PingService {
     private static final AtomicInteger requestCount = new AtomicInteger(0);
     private static FileLock fileLock;
     private final KafkaTemplate<String, String> kafkaTemplate;
+    private final ReactiveRedisTemplate<String, String> redisTemplate;
+    private final RedisScript<Long> rateLimitScript;
 
-    public PingService(KafkaTemplate<String, String> kafkaTemplate) {
+    public PingService(KafkaTemplate<String, String> kafkaTemplate,
+                       ReactiveRedisTemplate<String, String> redisTemplate,
+                       RedisScript<Long> rateLimitScript) {
         this.kafkaTemplate = kafkaTemplate;
+        this.redisTemplate = redisTemplate;
+        this.rateLimitScript = rateLimitScript;
     }
+
 
     static {
         try {
